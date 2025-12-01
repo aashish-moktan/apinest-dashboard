@@ -8,6 +8,7 @@ import {
   ServerIcon,
 } from "@heroicons/react/24/outline";
 import { useUser } from "../hooks/useUser";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface Api {
   name: string;
@@ -46,6 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setAuthenticated }) => {
   const [copied, setCopied] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user } = useUser();
+  const { remove } = useLocalStorage("authCode", undefined);
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText(apiKey);
@@ -56,6 +58,11 @@ const Dashboard: React.FC<DashboardProps> = ({ setAuthenticated }) => {
   const handleGenerateKey = () => {
     const newKey = Math.random().toString(36).substring(2, 15);
     setApiKey(newKey);
+  };
+
+  const handleLogout = () => {
+    setAuthenticated(false);
+    remove();
   };
 
   return (

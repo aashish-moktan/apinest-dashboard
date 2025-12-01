@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useUser } from "../hooks/useUser";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface LoginProps {
   setAuthenticated: (val: boolean) => void;
@@ -12,25 +13,31 @@ export default function Login({ setAuthenticated }: LoginProps) {
   const [error, setError] = useState("");
   const { setUser } = useUser();
   const navigate = useNavigate();
+  const { setValue: setToken } = useLocalStorage("authToken", undefined);
 
   const responseGoogle = async (authResult: object) => {
     try {
       const code = (authResult as { code: string }).code;
 
       // Exchange the authorization code for tokens at your backend
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/google/callback`,
-        { code }
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/auth/google/callback?code=${code}`
       );
 
       const data = response.data;
-      console.log("Data :: ", data);
+
       if (data.success) {
+        // store token in local storage
+        setToken(data.data.authToken);
+        console.log("Auth token :: ", data.data.authToken);
+
+        // store user information in context
         setUser({
           name: data.data.name,
           email: data.data.email,
           avatar: data.data.avatar,
         });
+
         setAuthenticated(true);
         navigate("/dashboard");
       } else {
